@@ -22,7 +22,10 @@ class GarmodoroDelegate extends Ui.BehaviorDelegate {
 		if ( Pomodoro.isInReadyState() ) {
 			Pomodoro.transitionToState( Pomodoro.stateRunning );
 			Ui.requestUpdate();
-		} else { // pomodoro is in running or break state
+		} else if ( Pomodoro.isInRunningState() ) {
+			Pomodoro.transitionToState( Pomodoro.stateBreak );
+			Ui.requestUpdate();
+		} else { // pomodoro is in break state
 			onMenu();
 		}
 		return true;
