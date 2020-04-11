@@ -8,6 +8,7 @@ using Toybox.Lang as Lang;
 module Pomodoro {
 	var minuteTimer;
 	var tickTimer;
+
 	// pomodoro states: ready -> running -> break -> ready ...
 	enum {
 		stateReady,
@@ -17,6 +18,7 @@ module Pomodoro {
 	var currentState = stateReady;
 	var pomodoroIteration = 1;
 	var minutesLeft = 0;
+
 	// cached app properties to reduce battery load
 	var tickStrength;
 	var tickDuration;
@@ -28,8 +30,7 @@ module Pomodoro {
 
 		minuteTimer = new Timer.Timer();
 		tickTimer = new Timer.Timer();
-		// continuously refreshes current time displayed on watch
-		beginMinuteCountdown();
+		transitionToNextState();
 	}
 
 	function vibrate( dutyCycle, length ) {
@@ -91,18 +92,20 @@ module Pomodoro {
 		playAttentionTone( 9 ); // Attention.TONE_RESET
 		vibrate( 50, 1500 );
 
-		pomodoroIteration = 0;
-		transitionToState( stateReady );
+		pomodoroIteration = 1;
+		currentState = stateReady;
+		transitionToNextState();
 	}
 
+	// called every minute by minuteTimer
 	function countdownMinutes() {
 		minutesLeft -= 1;
 
 		if ( minutesLeft == 0 ) {
 			if( isInRunningState() ) {
-				transitionToState( stateBreak );
+				transitionToNextState();
 			} else if (isInBreakState()) {
-				transitionToState( stateReady );
+				transitionToNextState();
 			} else {
 				// nothing to do in ready state
 			}
@@ -137,26 +140,28 @@ module Pomodoro {
 		minuteTimer.stop();
 	}
 
-	function transitionToState( targetState ) {
+	function transitionToNextState() {
 		stopTimers();
-		currentState = targetState;
 
-		if( targetState == stateReady ) {
+		if( currentState == stateBreak ) {
 			playAttentionTone( 7 ); // Attention.TONE_INTERVAL_ALERT
 			vibrate( 100, 1500 );
 
 			pomodoroIteration += 1;
-		} else if( targetState== stateRunning ) {
+			currentState = stateReady;
+		} else if( currentState == stateReady ) {
 			playAttentionTone( 1 ); // Attention.TONE_START
 			vibrate( 75, 1500 );
 
 			resetMinutesForPomodoro();
 			beginTickingIfEnabled();
-		} else { // targetState == stateBreak
+			currentState = stateRunning;
+		} else { // currentState == stateRunning
 			playAttentionTone( 10 ); // Attention.TONE_LAP
 			vibrate( 100, 1500 );
 
 			resetMinutesForBreak();
+			currentState = stateBreak;
 		}
 
 		beginMinuteCountdown();
