@@ -101,13 +101,17 @@ module Pomodoro {
 	function countdownMinutes() {
 		minutesLeft -= 1;
 
-		if ( minutesLeft == 0 ) {
+		if ( minutesLeft <= 0 ) {
 			if( isInRunningState() ) {
-				transitionToNextState();
+				playAttentionTone( 10 ); // Attention.TONE_LAP
+				vibrate( 100, 1500 );
 			} else if (isInBreakState()) {
-				transitionToNextState();
+				playAttentionTone( 7 ); // Attention.TONE_INTERVAL_ALERT
+				vibrate( 100, 1500 );
 			} else {
-				// nothing to do in ready state
+				// in ready state: nag every 5 minutes
+				vibrate( 75, 1500 );
+				minutesLeft += 5;
 			}
 		}
 
@@ -144,22 +148,13 @@ module Pomodoro {
 		stopTimers();
 
 		if( currentState == stateBreak ) {
-			playAttentionTone( 7 ); // Attention.TONE_INTERVAL_ALERT
-			vibrate( 100, 1500 );
-
 			pomodoroIteration += 1;
 			currentState = stateReady;
 		} else if( currentState == stateReady ) {
-			playAttentionTone( 1 ); // Attention.TONE_START
-			vibrate( 75, 1500 );
-
 			resetMinutesForPomodoro();
 			beginTickingIfEnabled();
 			currentState = stateRunning;
 		} else { // currentState == stateRunning
-			playAttentionTone( 10 ); // Attention.TONE_LAP
-			vibrate( 100, 1500 );
-
 			resetMinutesForBreak();
 			currentState = stateBreak;
 		}
