@@ -63,6 +63,7 @@ class GarmodoroView extends Ui.View {
 			var heightOfFontMedium = Gfx.getFontHeight( Gfx.FONT_MEDIUM );
 			me.pomodoroOffset += heightOfFontMedium;
 
+			me.captionOffset -= 5;
 			me.timeOffset -= 5;
 		}
 	}
