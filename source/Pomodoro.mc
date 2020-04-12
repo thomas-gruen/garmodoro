@@ -30,7 +30,8 @@ module Pomodoro {
 
 		minuteTimer = new Timer.Timer();
 		tickTimer = new Timer.Timer();
-		transitionToNextState();
+		
+		resetAndStart();
 	}
 
 	function vibrate( dutyCycle, length ) {
@@ -87,8 +88,8 @@ module Pomodoro {
 		return pomodoroIteration;
 	}
 
-	// called by StopMenuDelegate 
-	function resetFromMenu() {
+	// called on initialization and by StopMenuDelegate 
+	function resetAndStart() {
 		playAttentionTone( 9 ); // Attention.TONE_RESET
 		vibrate( 50, 1500 );
 
@@ -111,7 +112,7 @@ module Pomodoro {
 			} else {
 				// in ready state: nag every 5 minutes
 				vibrate( 75, 1500 );
-				minutesLeft += 5;
+				minutesLeft = 5;
 			}
 		}
 
@@ -123,6 +124,7 @@ module Pomodoro {
 		minuteTimer.start( countdown, 60 * 1000, true );
 	}
 
+	// called every second by tickTimer, if ticking is enabled
 	function makeTickingSound() {
 		vibrate( tickStrength, tickDuration );
 	}
@@ -144,19 +146,20 @@ module Pomodoro {
 		minuteTimer.stop();
 	}
 
+	// enter next pomodoro phase
 	function transitionToNextState() {
 		stopTimers();
 
 		if( currentState == stateBreak ) {
-			pomodoroIteration += 1;
 			currentState = stateReady;
+			pomodoroIteration += 1;
 		} else if( currentState == stateReady ) {
+			currentState = stateRunning;
 			resetMinutesForPomodoro();
 			beginTickingIfEnabled();
-			currentState = stateRunning;
 		} else { // currentState == stateRunning
-			resetMinutesForBreak();
 			currentState = stateBreak;
+			resetMinutesForBreak();
 		}
 
 		beginMinuteCountdown();

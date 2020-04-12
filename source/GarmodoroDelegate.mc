@@ -32,7 +32,7 @@ class GarmodoroDelegate extends Ui.BehaviorDelegate {
 		return true;
 	}
 
-	// also called from onSelect() and onBack()
+	// also called from and onBack()
 	function onMenu() {
 		Ui.pushView( new Rez.Menus.StopMenu(),
 					new StopMenuDelegate(), Ui.SLIDE_UP );
